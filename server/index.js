@@ -14,6 +14,10 @@ import Rental from './models/Rental.js';
 import { logger } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { validateRental } from './middleware/validation.js';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
+import User from './models/User.js';
+import { authenticateToken, requireAdmin } from './middleware/auth.js';
 
 // Get current file path and directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -95,18 +99,18 @@ mongoose.connection.once('open', () => {
  * @returns {Object} 201 - Created rental record
  * @returns {Object} 400 - Error message
  */
-app.post('/api/rentals', validateRental, async (req, res, next) => {
+app.post('/api/rentals', authenticateToken, validateRental, async (req, res, next) => {
   try {
-    // Verify database connection
     if (mongoose.connection.readyState !== 1) {
       throw new Error('Database connection not ready');
     }
 
-    const rental = new Rental(req.body);
-    logger.info('Attempting to save rental:', { rentalId: rental._id });
+    const rental = new Rental({
+      ...req.body,
+      userId: req.user.userId
+    });
     
     const savedRental = await rental.save();
-    logger.info('Successfully saved rental:', { rentalId: savedRental._id });
     
     res.status(201).json({
       success: true,
@@ -128,6 +132,209 @@ app.get('/api/rentals', async (req, res, next) => {
   try {
     const rentals = await Rental.find().sort({ createdAt: -1 });
     res.status(200).json({
+      success: true,
+      count: rentals.length,
+      data: rentals
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route POST /api/auth/register
+ * @description Register a new user
+ * @access Public
+ */
+app.post('/api/auth/register', async (req, res, next) => {
+  try {
+    const { name, email, password, phone } = req.body;
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User already exists' 
+      });
+    }
+    
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
+    // Create user
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword,
+      phone,
+      role: 'user'
+    });
+    
+    await user.save();
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route POST /api/auth/login
+ * @description Login user (including admin)
+ * @access Public
+ */
+app.post('/api/auth/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Check for admin credentials
+    if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+      const token = jwt.sign(
+        { userId: 'admin', email, role: 'admin' },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+      );
+      
+      return res.json({
+        success: true,
+        message: 'Admin login successful',
+        token,
+        user: {
+          id: 'admin',
+          name: 'Administrator',
+          email,
+          role: 'admin'
+        }
+      });
+    }
+    
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+    
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid credentials'
+      });
+    }
+    
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: user._id, email: user.email, role: user.role },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+    
+    res.json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route GET /api/auth/profile
+ * @description Get user profile
+ * @access Private
+ */
+app.get('/api/auth/profile', authenticateToken, async (req, res, next) => {
+  try {
+    if (req.user.role === 'admin') {
+      return res.json({
+        success: true,
+        user: {
+          id: 'admin',
+          name: 'Administrator',
+          email: req.user.email,
+          role: 'admin'
+        }
+      });
+    }
+    
+    const user = await User.findById(req.user.userId).select('-password');
+    res.json({
+      success: true,
+      user
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route DELETE /api/rentals/:id
+ * @description Delete a specific rental (Admin only)
+ * @access Private (Admin only)
+ */
+app.delete('/api/rentals/:id', authenticateToken, requireAdmin, async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    
+    const rental = await Rental.findById(id);
+    if (!rental) {
+      return res.status(404).json({
+        success: false,
+        message: 'Rental not found'
+      });
+    }
+    
+    await Rental.findByIdAndDelete(id);
+    logger.info('Rental deleted by admin:', { rentalId: id, adminId: req.user.userId });
+    
+    res.json({
+      success: true,
+      message: 'Rental deleted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * @route GET /api/rentals/user
+ * @description Get user's own rentals
+ * @access Private
+ */
+app.get('/api/rentals/user', authenticateToken, async (req, res, next) => {
+  try {
+    const rentals = await Rental.find({ userId: req.user.userId }).sort({ createdAt: -1 });
+    res.json({
       success: true,
       count: rentals.length,
       data: rentals
