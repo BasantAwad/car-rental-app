@@ -12,151 +12,58 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { ArrowLeft, User, Mail, Phone, CalendarDays, Car, MapPin, Users, Shield, MessageSquare } from 'lucide-react';
-import axios from 'axios';
-
-// Import the images
-import mainCar from '@/components/imgs/main.png';
-import teslaImg from '@/components/imgs/Tesla-Model-S-PNG-Photo.png';
-import bmwImg from '@/components/imgs/BMW-M3-2019-PNG-Images-HD.png';
-import mustangImg from '@/components/imgs/Ford Mustang GT.png';
-import audiImg from '@/components/imgs/Audi R8.png';
-import jeepImg from '@/components/imgs/Jeep Wrangler.png';
-import porscheImg from '@/components/imgs/Porsche 911 Carrera 4S.png';
-import maseratiImg from '@/components/imgs/maserati.png';
-import nissanImg from '@/components/imgs/nissanGTR.png';
-import rollsImg from '@/components/imgs/rollsroyce.png';
-import bugattiImg from '@/components/imgs/bugatti.png';
-import mclarenImg from '@/components/imgs/mclaren.png';
-import ferrariImg from '@/components/imgs/frari.png';
-
-/**
- * Sample car data array
- * @type {Array<{id: string, name: string, image: string}>}
- */
-const carsData = [
-  { 
-    id: '1', 
-    name: 'Tesla Model S', 
-    image: teslaImg,
-    pricePerDay: 200,
-    category: 'Luxury',
-    features: ['Electric', 'Autopilot', 'Premium Sound'],
-    description: 'Luxury electric sedan with autopilot capabilities'
-  },
-  { 
-    id: '2', 
-    name: 'BMW M3', 
-    image: bmwImg,
-    pricePerDay: 180,
-    category: 'Sports',
-    features: ['M Sport Package', 'Leather Interior', 'Sport Suspension'],
-    description: 'High-performance sports sedan'
-  },
-  { 
-    id: '3', 
-    name: 'Ford Mustang GT', 
-    image: mustangImg,
-    pricePerDay: 150,
-    category: 'Muscle',
-    features: ['V8 Engine', 'Sport Mode', 'Track Package'],
-    description: 'Classic American muscle car'
-  },
-  { 
-    id: '4', 
-    name: 'Audi R8', 
-    image: audiImg,
-    pricePerDay: 300,
-    category: 'Supercar',
-    features: ['Quattro AWD', 'Carbon Fiber', 'Sport Exhaust'],
-    description: 'High-performance supercar'
-  },
-  { 
-    id: '5', 
-    name: 'Jeep Wrangler', 
-    image: jeepImg,
-    pricePerDay: 120,
-    category: 'SUV',
-    features: ['4x4', 'Removable Top', 'Off-road Package'],
-    description: 'Rugged off-road SUV'
-  },
-  { 
-    id: '6', 
-    name: 'Porsche 911', 
-    image: porscheImg,
-    pricePerDay: 250,
-    category: 'Sports',
-    features: ['PDK Transmission', 'Sport Chrono', 'Premium Interior'],
-    description: 'Iconic sports car'
-  },
-  { 
-    id: '7', 
-    name: 'Maserati', 
-    image: maseratiImg,
-    pricePerDay: 280,
-    category: 'Luxury',
-    features: ['Italian Design', 'Premium Sound', 'Sport Mode'],
-    description: 'Italian luxury sports car'
-  },
-  { 
-    id: '8', 
-    name: 'Nissan GTR', 
-    image: nissanImg,
-    pricePerDay: 220,
-    category: 'Sports',
-    features: ['Twin-Turbo', 'All-Wheel Drive', 'Launch Control'],
-    description: 'Japanese supercar'
-  },
-  { 
-    id: '9', 
-    name: 'Rolls Royce', 
-    image: rollsImg,
-    pricePerDay: 400,
-    category: 'Ultra Luxury',
-    features: ['Handcrafted Interior', 'Suicide Doors', 'Starlight Headliner'],
-    description: 'Ultimate luxury vehicle'
-  },
-  { 
-    id: '10', 
-    name: 'Bugatti', 
-    image: bugattiImg,
-    pricePerDay: 500,
-    category: 'Hypercar',
-    features: ['W16 Engine', 'Carbon Fiber', 'Speed Key'],
-    description: 'World\'s fastest production car'
-  },
-  { 
-    id: '11', 
-    name: 'McLaren', 
-    image: mclarenImg,
-    pricePerDay: 350,
-    category: 'Supercar',
-    features: ['Carbon Fiber Monocage', 'Active Aero', 'Track Mode'],
-    description: 'British supercar'
-  },
-  { 
-    id: '12', 
-    name: 'Ferrari', 
-    image: ferrariImg,
-    pricePerDay: 380,
-    category: 'Supercar',
-    features: ['V12 Engine', 'Racing Heritage', 'Manettino Dial'],
-    description: 'Italian supercar'
-  }
-];
+import { getCarById, createRental } from '@/services/api';
 
 /**
  * RentCarPage Component
  * @component
  * @returns {JSX.Element} Rendered component
  */
-const RentCarPage = () => {
-  // Get car ID from URL parameters
+const RentCarPage = ({ user }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   
-  // Find the selected car from the carsData array
-  const car = carsData.find(c => c.id === id);
+  const [car, setCar] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch car details
+  useEffect(() => {
+    const fetchCar = async () => {
+      try {
+        setLoading(true);
+        
+        // Redirect to login if user is not authenticated
+        if (!user) {
+          navigate('/login', { state: { from: { pathname: `/rent/${id}` } } });
+          return;
+        }
+        
+        // Fetch car details from API
+        const response = await getCarById(id);
+        setCar(response.data.data);
+        
+        // Set default dates
+        const today = new Date().toISOString().split('T')[0];
+        setFormData(prev => ({ 
+          ...prev, 
+          pickupDate: today,
+          name: user?.name || '',
+          email: user?.email || '',
+          phone: user?.phone || '' 
+        }));
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching car:', err);
+        setError('Failed to load car data. Please try again.');
+        setLoading(false);
+      }
+    };
+    
+    fetchCar();
+  }, [id, user, navigate]);
 
   /**
    * Form data state
@@ -175,17 +82,30 @@ const RentCarPage = () => {
     specialRequests: '',
   });
 
-  /**
-   * Set initial pickup date to today when component mounts
-   */
-  useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    setFormData(prev => ({ ...prev, pickupDate: today }));
-  }, []);
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-purple-500 border-r-transparent border-b-purple-500 border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-purple-400 text-xl">Loading rental details...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show error if car not found
-  if (!car) {
-    return <div className="text-center py-10 text-2xl text-red-400">Car not found!</div>;
+  if (error || !car) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl text-red-400 mb-4">{error || 'Car not found!'}</h2>
+          <Button onClick={() => navigate('/')} className="bg-red-800 hover:bg-red-900">
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   /**
@@ -193,8 +113,11 @@ const RentCarPage = () => {
    * @param {Event} e - Change event
    */
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    setFormData(prev => ({ 
+      ...prev, 
+      [name]: type === 'checkbox' ? checked : value 
+    }));
   };
 
   // Calculate total price
@@ -229,47 +152,46 @@ const RentCarPage = () => {
     if (!formData.name || !formData.email || !formData.phone || !formData.pickupDate || !formData.returnDate) {
       toast({
         title: "Error",
-        description: "Please fill in all fields.",
+        description: "Please fill in all required fields.",
         variant: "destructive",
       });
       return;
     }
 
     // Validate dates
-    if (new Date(formData.returnDate) < new Date(formData.pickupDate)) {
+    if (new Date(formData.returnDate) <= new Date(formData.pickupDate)) {
       toast({
         title: "Error",
-        description: "Return date cannot be before pickup date.",
+        description: "Return date must be after pickup date.",
         variant: "destructive",
       });
       return;
     }
 
     try {
+      // Create rental data object
       const rentalData = {
-        carId: car.id,
+        carId: car._id,
         carName: car.name,
         pricePerDay: car.pricePerDay,
         totalPrice: calculateTotalPrice(),
         ...formData
       };
       
-      console.log('Sending rental data:', rentalData);
-      
-      const response = await axios.post('http://localhost:5000/api/rentals', rentalData);
-      console.log('Server response:', response.data);
+      // Send rental request to API
+      await createRental(rentalData);
       
       toast({
         title: "Rental Submitted!",
         description: `Your request to rent ${car.name} has been received. Total price: $${calculateTotalPrice()}`,
         className: "bg-green-600 text-white border-green-700",
       });
-      navigate('/');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error submitting rental:', error);
       toast({
         title: "Error",
-        description: "Failed to submit rental request. Please try again.",
+        description: error.response?.data?.message || "Failed to submit rental request. Please try again.",
         variant: "destructive",
       });
     }

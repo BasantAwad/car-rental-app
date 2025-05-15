@@ -1,18 +1,10 @@
-
-import React, { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, CalendarDays, Users, Zap, Gauge, CheckCircle, Palette } from 'lucide-react';
-
-const carsData = [
-  { id: '1', name: 'Tesla Model S', type: 'Electric Sedan', price: '$75/day', baseImage: 'tesla-model-s-transparent', features: ['Autopilot', 'Panoramic Roof', '0-60 in 2.5s', 'Premium Sound System', 'Full Self-Driving Capability (Beta)'], seats: 5, range: '390 miles', description: 'Experience the future of driving with the Tesla Model S. Unparalleled performance, cutting-edge technology, and zero emissions.' },
-  { id: '2', name: 'BMW M3', type: 'Sports Sedan', price: '$90/day', baseImage: 'bmw-m3-transparent', features: ['Twin-Turbo Engine', 'Adaptive M Suspension', 'M Sport Seats', 'Harman Kardon Surround Sound', 'Carbon Fiber Roof'], seats: 5, range: '300 miles', description: 'The BMW M3 combines track-level performance with everyday usability. A true driver\'s car with aggressive styling and thrilling dynamics.' },
-  { id: '3', name: 'Ford Mustang GT', type: 'Muscle Car', price: '$80/day', baseImage: 'mustang-gt-transparent', features: ['5.0L V8 Engine', 'Performance Exhaust', 'Line Lock & Launch Control', 'Brembo Brakes', 'SYNC 3 Infotainment'], seats: 4, range: '280 miles', description: 'Unleash the iconic power of the Ford Mustang GT. With its roaring V8 and aggressive stance, it\'s an American legend.' },
-  { id: '4', name: 'Audi R8', type: 'Supercar', price: '$250/day', baseImage: 'audi-r8-transparent', features: ['Naturally Aspirated V10 Engine', 'Quattro All-Wheel Drive', 'Carbon Fiber Accents', 'Virtual Cockpit', 'Bang & Olufsen Sound System'], seats: 2, range: '250 miles', description: 'The Audi R8 is a masterpiece of engineering, offering breathtaking performance and stunning design. A true supercar experience.' },
-  { id: '5', name: 'Jeep Wrangler', type: 'Off-road SUV', price: '$70/day', baseImage: 'jeep-wrangler-transparent', features: ['Legendary 4x4 Capability', 'Removable Top and Doors', 'All-Terrain Tires', 'Uconnect Infotainment', 'Trail Rated Badge'], seats: 4, range: '350 miles', description: 'Conquer any terrain with the Jeep Wrangler. The ultimate adventure vehicle, ready for off-road exploration and open-air freedom.' },
-  { id: '6', name: 'Porsche 911', type: 'Sports Car', price: '$200/day', baseImage: 'porsche-911-transparent', features: ['Rear-Engine Boxer Engine', 'PDK Dual-Clutch Transmission', 'Iconic Flyline Design', 'Porsche Communication Management (PCM)', 'Sport Chrono Package'], seats: 2, range: '300 miles', description: 'The Porsche 911 is the quintessential sports car, perfected over decades. Timeless design, exhilarating performance, and unmatched driving pleasure.' },
-];
+import { ArrowLeft, CalendarDays, Users, Zap, Gauge, CheckCircle, Palette, Star, MessageSquare } from 'lucide-react';
+import { getCarById, getCarReviews } from '@/services/api';
+import ReviewCard from '@/components/ReviewCard';
 
 const colorOptions = [
   { name: 'Jet Black', value: '#000000' },
@@ -23,16 +15,78 @@ const colorOptions = [
   { name: 'Solar Orange', value: '#ff7b00' },
 ];
 
-const CarInfoPage = () => {
+const CarInfoPage = ({ user }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const car = carsData.find(c => c.id === id);
+  const [car, setCar] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedColor, setSelectedColor] = useState(colorOptions[0]);
   const [isCustomizing, setIsCustomizing] = useState(false);
+  
+  useEffect(() => {
+    const fetchCarData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch car details
+        const carResponse = await getCarById(id);
+        setCar(carResponse.data.data);
+        
+        // Fetch car reviews
+        const reviewsResponse = await getCarReviews(id);
+        setReviews(reviewsResponse.data.data);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching car data:', err);
+        setError('Failed to load car information. Please try again later.');
+        setLoading(false);
+      }
+    };
+    
+    fetchCarData();
+  }, [id]);
+  
+  // Calculate average rating
+  const averageRating = reviews.length > 0
+    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / reviews.length).toFixed(1)
+    : 'No ratings';
 
-  if (!car) {
-    return <div className="text-center py-10 text-2xl text-red-400">Car not found!</div>;
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-t-red-500 border-r-transparent border-b-red-500 border-l-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-red-400 text-xl">Loading car details...</p>
+        </div>
+      </div>
+    );
   }
+
+  // Error state
+  if (error || !car) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl text-red-400 mb-4">{error || 'Car not found!'}</h2>
+          <Button onClick={() => navigate('/')} className="bg-red-800 hover:bg-red-900">
+            Back to Home
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const handleRentClick = () => {
+    if (user) {
+      navigate(`/rent/${car._id}`);
+    } else {
+      navigate('/login', { state: { from: { pathname: `/rent/${car._id}` } } });
+    }
+  };
 
   return (
     <motion.div
@@ -70,7 +124,8 @@ const CarInfoPage = () => {
                 className="w-full h-full object-contain car-shadow"
                 alt={`${car.name} in ${selectedColor.name}`}
                 style={{ filter: `drop-shadow(0 0 30px ${selectedColor.value}40) brightness(${selectedColor.name === 'Arctic White' ? 1.2 : 0.9})` }}
-               src="https://images.unsplash.com/photo-1602912526679-59e34e95e3ea" />
+                src={car.imageData || car.imageUrl}
+              />
             </motion.div>
           </motion.div>
 
@@ -111,14 +166,21 @@ const CarInfoPage = () => {
         <div className="space-y-6">
           <div className="bg-black/30 p-6 rounded-lg border border-red-900/20">
             <h1 className="text-4xl font-bold gradient-text mb-2">{car.name}</h1>
-            <p className="text-xl text-red-400">{car.type}</p>
+            <div className="flex justify-between items-center">
+              <p className="text-xl text-red-400">{car.type}</p>
+              <div className="flex items-center">
+                <Star className="text-yellow-400 mr-1 h-5 w-5" />
+                <span className="text-white font-medium">{averageRating}</span>
+                <span className="text-gray-400 text-sm ml-1">({reviews.length} reviews)</span>
+              </div>
+            </div>
           </div>
 
           <div className="bg-black/30 p-6 rounded-lg border border-red-900/20">
             <h2 className="text-2xl font-semibold mb-4 gradient-text">Specifications</h2>
             <div className="grid grid-cols-2 gap-4 text-lg">
               <div className="flex items-center"><Users className="mr-3 h-6 w-6 text-red-800" /> Seats: {car.seats}</div>
-              <div className="flex items-center"><Zap className="mr-3 h-6 w-6 text-red-800" /> Price: {car.price}</div>
+              <div className="flex items-center"><Zap className="mr-3 h-6 w-6 text-red-800" /> Price: ${car.pricePerDay}/day</div>
               <div className="flex items-center col-span-2"><Gauge className="mr-3 h-6 w-6 text-red-800" /> Range: {car.range}</div>
             </div>
           </div>
@@ -126,7 +188,7 @@ const CarInfoPage = () => {
           <div className="bg-black/30 p-6 rounded-lg border border-red-900/20">
             <h2 className="text-2xl font-semibold mb-4 gradient-text">Features</h2>
             <ul className="space-y-2">
-              {car.features.map((feature, index) => (
+              {car.features && car.features.map((feature, index) => (
                 <motion.li 
                   key={index}
                   initial={{ opacity: 0, x: -20 }}
@@ -150,14 +212,57 @@ const CarInfoPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.8 }}
+            className="flex space-x-4"
           >
-            <Link to={`/rent/${car.id}`}>
-              <Button size="lg" className="w-full bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white text-lg py-6 shadow-lg transform hover:scale-105 transition-transform duration-300">
-                <CalendarDays className="mr-2 h-5 w-5" /> Rent This Car
-              </Button>
-            </Link>
+            <Button 
+              onClick={handleRentClick}
+              size="lg" 
+              className="flex-1 bg-gradient-to-r from-red-900 to-red-700 hover:from-red-800 hover:to-red-600 text-white text-lg py-6 shadow-lg transform hover:scale-105 transition-transform duration-300"
+            >
+              <CalendarDays className="mr-2 h-5 w-5" /> 
+              {user ? 'Rent This Car' : 'Sign In to Rent'}
+            </Button>
+            
+            <Button 
+              onClick={() => navigate(`/review/${car._id}`)}
+              size="lg"
+              variant="outline"
+              className="flex-1 border-red-800 text-red-400 hover:bg-red-800/30 text-lg py-6 shadow-lg"
+            >
+              <MessageSquare className="mr-2 h-5 w-5" /> 
+              See Reviews
+            </Button>
           </motion.div>
         </div>
+      </div>
+      
+      {/* Reviews Section */}
+      <div className="mt-12 p-6 bg-black/30 rounded-lg border border-red-900/20">
+        <h2 className="text-2xl font-semibold mb-6 gradient-text">Customer Reviews</h2>
+        
+        {reviews.length === 0 ? (
+          <p className="text-center text-gray-400 py-6">No reviews yet for this car. Be the first to share your experience!</p>
+        ) : (
+          <div className="space-y-6">
+            {/* Show top 3 reviews */}
+            {reviews.slice(0, 3).map((review) => (
+              <ReviewCard key={review._id} review={review} />
+            ))}
+            
+            {/* Show "See All Reviews" button if there are more than 3 reviews */}
+            {reviews.length > 3 && (
+              <div className="text-center mt-6">
+                <Button 
+                  onClick={() => navigate(`/review/${car._id}`)}
+                  variant="outline"
+                  className="border-red-800 text-red-400 hover:bg-red-800/30"
+                >
+                  See All {reviews.length} Reviews
+                </Button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </motion.div>
   );

@@ -1,0 +1,281 @@
+.dashboard-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #000000 0%, #1a0000 100%);
+  color: white;
+  padding: 2rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 15px;
+  border: 1px solid rgba(139, 0, 0, 0.3);
+}
+
+.dashboard-header h2 {
+  background: linear-gradient(135deg, #ff0000, #cc0000);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.logout-btn {
+  background: #b91c1c;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+  background: #991b1b;
+}
+
+.user-info {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  border-radius: 15px;
+  border: 1px solid rgba(139, 0, 0, 0.3);
+  margin-bottom: 2rem;
+}
+
+.user-info h3 {
+  color: #dc2626;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.user-info p {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.rentals-section, .reviews-section {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 1.5rem;
+  border-radius: 15px;
+  border: 1px solid rgba(139, 0, 0, 0.3);
+  margin-bottom: 2rem;
+}
+
+.rentals-section h3, .reviews-section h3 {
+  color: #dc2626;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.rentals-grid, .reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.rental-card {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 0, 0, 0.2);
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.rental-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(139, 0, 0, 0.5);
+}
+
+.rental-card h4 {
+  color: #dc2626;
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.rental-dates {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.rental-date {
+  display: flex;
+  align-items: center;
+}
+
+.date-icon {
+  color: #9ca3af;
+  margin-right: 0.5rem;
+  width: 18px;
+  height: 18px;
+}
+
+.date-label {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.date-value {
+  color: white;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.rental-info {
+  margin-bottom: 1rem;
+}
+
+.rental-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 16px;
+  height: 16px;
+  margin-right: 0.25rem;
+}
+
+.rental-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.review-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 1px solid #9333ea;
+  color: #9333ea;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.review-btn:hover {
+  background: rgba(147, 51, 234, 0.1);
+}
+
+.review-btn.reviewed {
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+.review-btn.reviewed:hover {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.btn-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.btn-icon.reviewed {
+  fill: #22c55e;
+}
+
+.status {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  margin-left: 0.5rem;
+}
+
+.status.active {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid #22c55e;
+}
+
+.status.completed {
+  background: rgba(107, 114, 128, 0.2);
+  color: #9ca3af;
+  border: 1px solid #9ca3af;
+}
+
+.error-message {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #ef4444;
+  text-align: center;
+}
+
+/* Review Card Styles */
+.review-card {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border: 1px solid rgba(139, 0, 0, 0.2);
+  transition: transform 0.3s, border-color 0.3s;
+}
+
+.review-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(139, 0, 0, 0.5);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.review-header h4 {
+  color: #9333ea;
+  font-size: 1.2rem;
+  margin: 0;
+  flex: 1;
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-icon {
+  width: 16px;
+  height: 16px;
+  color: #64748b;
+}
+
+.star-icon.filled {
+  color: #eab308;
+  fill: #eab308;
+}
+
+.review-date {
+  color: #64748b;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.review-comment {
+  color: #e2e8f0;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.view-car-btn {
+  color: #9333ea;
+  font-size: 0.9rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.view-car-btn:hover {
+  text-decoration: underline;
+}

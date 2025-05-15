@@ -79,6 +79,11 @@ const rentalSchema = new mongoose.Schema({
   specialRequests: {
     type: String,
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: [true, 'User ID is required'],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

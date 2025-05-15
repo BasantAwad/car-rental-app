@@ -11,13 +11,18 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import Rental from './models/Rental.js';
-import { logger } from './utils/logger.js';
+import { logger, loggerMiddleware } from './utils/logger.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { validateRental } from './middleware/validation.js';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from './models/User.js';
 import { authenticateToken, requireAdmin } from './middleware/auth.js';
+import { body, validationResult } from 'express-validator';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import carRoutes from './routes/carRoutes.js';
+import reviewRoutes from './routes/reviewRoutes.js';
 
 // Get current file path and directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -25,6 +30,11 @@ const __dirname = dirname(__filename);
 
 // Initialize Express application
 const app = express();
+
+// Serve static files from the public directory
+app.use(express.static('public'));
+// Serve static image files from the components directory - proper path resolution
+app.use('/imgs', express.static(dirname(dirname(__filename)) + '/src/components/imgs'));
 
 /**
  * Middleware Configuration
@@ -34,7 +44,15 @@ const app = express();
  */
 app.use(cors());
 app.use(express.json());
-app.use(logger);
+app.use(loggerMiddleware);
+app.use(helmet());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
 
 /**
  * MongoDB Atlas Connection Configuration
@@ -83,6 +101,10 @@ mongoose.connection.on('error', err => {
 mongoose.connection.once('open', () => {
   logger.info('MongoDB connection established successfully');
 });
+
+// Add new routes
+app.use('/api/cars', carRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 /**
  * @route POST /api/rentals
@@ -146,56 +168,70 @@ app.get('/api/rentals', async (req, res, next) => {
  * @description Register a new user
  * @access Public
  */
-app.post('/api/auth/register', async (req, res, next) => {
-  try {
-    const { name, email, password, phone } = req.body;
-    
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'User already exists' 
-      });
+app.post(
+  '/api/auth/register',
+  [
+    body('name').notEmpty().withMessage('Name is required'),
+    body('email').isEmail().withMessage('Valid email is required'),
+    body('phone').notEmpty().withMessage('Phone is required'),
+    body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  ],
+  async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      // User-facing error
+      return res.status(400).json({ success: false, message: errors.array()[0].msg });
     }
-    
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    
-    // Create user
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      phone,
-      role: 'user'
-    });
-    
-    await user.save();
-    
-    // Generate JWT token
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
-    );
-    
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role
+    try {
+      const { name, email, password, phone } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'User already exists' 
+        });
       }
-    });
-  } catch (error) {
-    next(error);
+      
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+      
+      // Create user
+      const user = new User({
+        name,
+        email,
+        password: hashedPassword,
+        phone,
+        role: 'user'
+      });
+      
+      await user.save();
+      
+      // Generate JWT token
+      const token = jwt.sign(
+        { userId: user._id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+      );
+      
+      res.status(201).json({
+        success: true,
+        message: 'User registered successfully',
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 /**
  * @route POST /api/auth/login

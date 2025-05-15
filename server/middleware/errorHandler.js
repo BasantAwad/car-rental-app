@@ -13,7 +13,7 @@ export class ApiError extends Error {
   constructor(statusCode, message, isOperational = true, stack = '') {
     super(message);
     this.statusCode = statusCode;
-    this.isOperational = isOperational;
+    this.isOperational = isOperational; // true = user error, false = developer error
     if (stack) {
       this.stack = stack;
     } else {
@@ -33,7 +33,31 @@ export const errorHandler = (err, req, res, next) => {
   let error = { ...err };
   error.message = err.message;
 
-  // Log error
+  // User errors (validation, bad input, etc.)
+  if (err.name === 'ValidationError' || err.statusCode === 400) {
+    return res.status(400).json({
+      success: false,
+      message: error.message || 'Invalid input',
+    });
+  }
+
+  // MongoDB duplicate key
+  if (err.code === 11000) {
+    return res.status(400).json({
+      success: false,
+      message: 'Duplicate field value entered',
+    });
+  }
+
+  // CastError (bad ObjectId)
+  if (err.name === 'CastError') {
+    return res.status(404).json({
+      success: false,
+      message: 'Resource not found',
+    });
+  }
+
+  // Developer/Server errors
   logger.error({
     error: {
       message: err.message,
@@ -49,30 +73,9 @@ export const errorHandler = (err, req, res, next) => {
     }
   });
 
-  // Mongoose bad ObjectId
-  if (err.name === 'CastError') {
-    const message = 'Resource not found';
-    error = new ApiError(404, message);
-  }
-
-  // Mongoose duplicate key
-  if (err.code === 11000) {
-    const message = 'Duplicate field value entered';
-    error = new ApiError(400, message);
-  }
-
-  // Mongoose validation error
-  if (err.name === 'ValidationError') {
-    const message = Object.values(err.errors).map(val => val.message);
-    error = new ApiError(400, message);
-  }
-
-  // Default error response
+  // Only show generic message to user
   res.status(error.statusCode || 500).json({
     success: false,
-    error: {
-      message: error.message || 'Server Error',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
-    }
+    message: 'An unexpected error occurred. Please try again later.'
   });
 }; 
