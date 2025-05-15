@@ -162,9 +162,9 @@ const HomePage = ({ user, onLoginClick }) => {
                 >
                   <Card className="car-card bg-slate-800/50 border border-purple-500/30 overflow-hidden h-full flex flex-col">
                     <CardHeader>
-                      <div className="relative h-48 w-full mb-4">
+                      <div className="flex items-center justify-center h-48 w-full mb-2 bg-transparent">
                         <img 
-                          className="absolute inset-0 w-full h-full object-cover rounded-t-lg" 
+                          className="max-h-44 object-contain rounded-t-lg" 
                           alt={car.name + " image"} 
                           src={car.imageData || car.imageUrl} 
                         />
