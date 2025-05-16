@@ -10,7 +10,7 @@ const Header = ({ user, onLoginClick }) => {
   };
 
   return (
-    <header className="py-6 px-4 sm:px-6 lg:px-8 shadow-lg bg-black/30 backdrop-blur-md border-b border-red-900/20">
+    <header className="fixed top-0 left-0 right-0 z-[100] py-6 px-4 sm:px-6 lg:px-8 shadow-lg bg-black/30 backdrop-blur-md border-b border-red-900/20 transition-all duration-300">
       <nav className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-3xl font-bold flex items-center">
           <Car className="w-10 h-10 mr-3 text-red-800" />

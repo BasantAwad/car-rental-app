@@ -1,17 +1,95 @@
-/* Global styles for the App */
-.App {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #000000 0%, #1a0000 100%);
-  color: white;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --foreground: #ffffff;
 }
 
-/* Gradient text effect */
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  min-height: 100vh;
+}
+
+.App {
+  min-height: 100vh;
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
 .gradient-text {
-  background: linear-gradient(135deg, #ff0000, #cc0000);
-  background-clip: text;
+  background: linear-gradient(to right, #a855f7, #ec4899);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  font-weight: bold;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.7);
+}
+
+/* Ensure content is visible on dark background */
+.prose {
+  color: #e5e7eb;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  color: #ffffff;
+}
+
+.prose a {
+  color: #a855f7;
+}
+
+.prose a:hover {
+  color: #c084fc;
+}
+
+.prose ul {
+  color: #e5e7eb;
+}
+
+.prose li {
+  color: #e5e7eb;
+}
+
+/* Ensure proper contrast for text */
+.text-gray-300 {
+  color: #e5e7eb;
+}
+
+.text-gray-400 {
+  color: #9ca3af;
+}
+
+/* Ensure proper background for cards and sections */
+.bg-black\/30 {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.bg-purple-900\/20 {
+  background-color: rgba(88, 28, 135, 0.2);
+}
+
+/* Ensure proper border colors */
+.border-purple-500\/20 {
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
 /* General styling */

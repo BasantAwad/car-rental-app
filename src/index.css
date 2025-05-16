@@ -1,12 +1,11 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
+    --background: #000000;
+    --foreground: #ffffff;
     --card: 0 0% 3%;
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 3%;
@@ -26,16 +25,52 @@
     --ring: 345 75% 25%;
     --radius: 0.75rem;
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(168, 85, 247, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(168, 85, 247, 0.7);
+}
+
+/* Ensure proper contrast for text */
+.text-gray-300 {
+  color: #e5e7eb;
+}
+
+.text-gray-400 {
+  color: #9ca3af;
+}
+
+/* Ensure proper background for cards and sections */
+.bg-black\/30 {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.bg-purple-900\/20 {
+  background-color: rgba(88, 28, 135, 0.2);
+}
+
+/* Ensure proper border colors */
+.border-purple-500\/20 {
+  border-color: rgba(168, 85, 247, 0.2);
 }
 
 .gradient-text {

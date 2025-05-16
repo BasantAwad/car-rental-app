@@ -1,11 +1,9 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
-	darkMode: ['class'],
+export default {
+	darkMode: 'class',
 	content: [
-		'./pages/**/*.{js,jsx}',
-		'./components/**/*.{js,jsx}',
-		'./app/**/*.{js,jsx}',
-		'./src/**/*.{js,jsx}',
+		'./index.html',
+		'./src/**/*.{js,ts,jsx,tsx}',
 	],
 	theme: {
 		container: {
@@ -20,8 +18,8 @@ module.exports = {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
 				ring: 'hsl(var(--ring))',
-				background: 'hsl(var(--background))',
-				foreground: 'hsl(var(--foreground))',
+				background: 'var(--background)',
+				foreground: 'var(--foreground)',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
@@ -72,5 +70,8 @@ module.exports = {
 			},
 		},
 	},
-	plugins: [require('tailwindcss-animate')],
+	plugins: [
+		require('tailwindcss-animate'),
+		require('@tailwindcss/typography'),
+	],
 };
