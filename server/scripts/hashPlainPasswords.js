@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 
 // Update this to your MongoDB connection string
-const MONGO_URI = 'mongodb://localhost:27017/YOUR_DATABASE_NAME';
+const MONGO_URI = 'mongodb+srv://basantawad:BasantAwad014@cluster0.2wa4l9d.mongodb.net/';
 
 async function hashPasswords() {
   await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
