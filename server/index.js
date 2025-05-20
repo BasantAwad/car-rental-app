@@ -23,6 +23,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import carRoutes from './routes/carRoutes.js';
 import reviewRoutes from './routes/reviewRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 // Get current file path and directory for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -105,6 +106,7 @@ mongoose.connection.once('open', () => {
 // Add new routes
 app.use('/api/cars', carRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 /**
  * @route POST /api/rentals
