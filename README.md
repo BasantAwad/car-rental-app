@@ -101,41 +101,6 @@ A modern car rental web application built with React, Node.js, and MongoDB, offe
 - MongoDB Atlas account
 - npm or yarn
 
-### Installation
-1. Clone the repository
-```bash
-git clone [repository-url]
-```
-
-2. Install dependencies
-```bash
-# Install frontend dependencies
-cd client
-npm install
-
-# Install backend dependencies
-cd ../server
-npm install
-```
-
-3. Set up environment variables
-Create a `.env` file in the server directory:
-```
-MONGODB_URI=your_mongodb_connection_string
-PORT=5000
-```
-
-4. Start the application
-```bash
-# Start backend server
-cd server
-npm start
-
-# Start frontend development server
-cd client
-npm start
-```
-
 ## Code Quality and Performance
 
 ### Code Organization
@@ -168,10 +133,7 @@ npm start
 4. Real-time availability updates
 5. Review and rating system
 
-## License
-MIT License
-
-## Authors
+## Author
 Basant Awad 
 
 ## 🔐 Authentication System
@@ -220,48 +182,6 @@ Basant Awad
 }
 ```
 
-## 🚀 Installation & Setup
-
-### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- MongoDB Atlas account
-
-### Backend Setup
-1. Clone the repository
-2. Navigate to project directory
-3. Install backend dependencies:
-   ```bash
-   cd server
-   npm install
-   ```
-
-4. Create `.env` file in `/server` directory:
-   ```env
-   MONGODB_URI=your_mongodb_atlas_connection_string
-   JWT_SECRET=your_jwt_secret_key
-   ADMIN_EMAIL=admin@carrental.com
-   ADMIN_PASSWORD=your_admin_password
-   PORT=5000
-   ```
-
-5. Start the backend server:
-   ```bash
-   npm start
-   ```
-
-### Frontend Setup
-1. Open new terminal in project root
-2. Install frontend dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the frontend development server:
-   ```bash
-   npm start
-   ```
-
 ## 📡 API Endpoints
 
 ### Authentication Routes
@@ -298,19 +218,3 @@ Basant Awad
 2. **View All Rentals**: Monitor all rental activities
 3. **Manage Rentals**: Delete rentals as needed
 4. **User Oversight**: View user registration data
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🔗 Additional Documentation
-
-- [Database Report](./docs/database-report.md) - Detailed database architecture and implementation
